@@ -19,6 +19,18 @@ describe('describeError', () => {
     expect(describeError(new GreenApiError(400, 'custom webhook url is set'))).toContain('webhookUrl')
   })
 
+  test.each([
+    ['bad phone number, valid 11 or 12 digits', 'формат номера'],
+    ['Validation failed. Details: Wrong format. phoneNumber must contain only digits', 'формат номера'],
+    ['check phone number timeout limit exceeded', 'не успел проверить'],
+  ])('400 «%s» → понятная подсказка', (message, expected) => {
+    expect(describeError(new GreenApiError(400, message))).toContain(expected)
+  })
+
+  test('неизвестная 400-ошибка показывает текст ответа, а не только код', () => {
+    expect(describeError(new GreenApiError(400, 'unexpected detail'))).toContain('unexpected detail')
+  })
+
   test('таймаут отличается от сетевого сбоя: подсказка не про apiUrl', () => {
     const text = describeError(new GreenApiError(0, 'GREEN-API не ответил за 30 с', { timeout: true }))
 
