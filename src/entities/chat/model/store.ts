@@ -13,6 +13,8 @@ interface ChatState {
   upsertChat: (input: UpsertChatInput) => string
   addMessage: (chatKey: string, message: Message) => void
   updateStatus: (messenger: MessengerType, chatId: string, idMessage: string, status: MessageStatus) => void
+  /** Завершает оптимистичную отправку: подставляет настоящий idMessage или помечает сообщение failed */
+  settleMessage: (chatKey: string, tempId: string, outcome: { idMessage: string } | 'failed') => void
   setActiveChat: (messenger: MessengerType, chatKey: string | undefined) => void
   /** Удаляет все данные мессенджера — при выходе из его аккаунта */
   resetMessenger: (messenger: MessengerType) => void
@@ -100,6 +102,25 @@ export const useChatStore = create<ChatState>()(
               [key]: list.map((m) => (m.idMessage === idMessage ? { ...m, status: nextStatus(m.status, status) } : m)),
             },
           }
+        }),
+
+      settleMessage: (chatKey, tempId, outcome) =>
+        set((state) => {
+          const list = state.messages[chatKey]
+          if (!list?.some((m) => m.idMessage === tempId)) return state
+
+          let next: Message[]
+          if (outcome === 'failed') {
+            next = list.map((m) => (m.idMessage === tempId ? { ...m, status: 'failed' as const } : m))
+          } else if (list.some((m) => m.idMessage === outcome.idMessage)) {
+            // Уведомление outgoingAPIMessageReceived пришло раньше ответа sendMessage — копия уже есть
+            next = list.filter((m) => m.idMessage !== tempId)
+          } else {
+            next = list.map((m) =>
+              m.idMessage === tempId ? { ...m, idMessage: outcome.idMessage, status: nextStatus(m.status, 'sent') } : m,
+            )
+          }
+          return { messages: { ...state.messages, [chatKey]: next } }
         }),
 
       setActiveChat: (messenger, chatKey) =>

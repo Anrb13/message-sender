@@ -1,4 +1,5 @@
-import { Badge, Tabs, Text } from '@mantine/core'
+import { Badge, Tabs } from '@mantine/core'
+import { ChatWindow } from '@/widgets/chat-window'
 import { Sidebar } from '@/widgets/sidebar'
 import { LoginForm } from '@/features/auth'
 import { useChatStore } from '@/entities/chat'
@@ -42,6 +43,7 @@ function MessengerTab({ messenger }: { messenger: MessengerType }) {
 
 function MessengerPanel({ messenger }: { messenger: MessengerType }) {
   const session = useSession(messenger)
+  const chatOpen = useChatStore((state) => !!state.activeChatKey[messenger])
 
   if (!session) {
     return (
@@ -52,12 +54,9 @@ function MessengerPanel({ messenger }: { messenger: MessengerType }) {
   }
 
   return (
-    <div className={b('layout')}>
+    <div className={b('layout', { 'chat-open': chatOpen })}>
       <Sidebar messenger={messenger} />
-      {/* Временная заглушка: окно переписки появится на следующем шаге */}
-      <div className={b('center')}>
-        <Text c="dimmed">Выберите чат или создайте новый</Text>
-      </div>
+      <ChatWindow messenger={messenger} />
     </div>
   )
 }

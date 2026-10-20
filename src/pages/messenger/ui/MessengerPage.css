@@ -18,6 +18,22 @@
   min-height: 0;
 }
 
+/* На узких экранах одна колонка: список чатов или открытый чат */
+@media (max-width: 48em) {
+  .messenger-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .messenger-page__layout > :last-child,
+  .messenger-page__layout--chat-open > :first-child {
+    display: none;
+  }
+
+  .messenger-page__layout--chat-open > :last-child {
+    display: flex;
+  }
+}
+
 .messenger-page__center {
   display: flex;
   flex: 1;

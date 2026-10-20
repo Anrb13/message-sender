@@ -158,3 +158,36 @@ describe('resetMessenger', () => {
     expect(store().activeChatKey.max).toBeUndefined()
   })
 })
+
+describe('settleMessage', () => {
+  const pending = (overrides: Partial<Message> = {}) =>
+    message({ idMessage: 'local-1', direction: 'outgoing', status: 'pending', ...overrides })
+
+  test('успешная отправка: временный id заменяется на idMessage, статус sent', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    store().addMessage(key, pending())
+
+    store().settleMessage(key, 'local-1', { idMessage: 'real-1' })
+
+    expect(store().messages[key]).toEqual([expect.objectContaining({ idMessage: 'real-1', status: 'sent' })])
+  })
+
+  test('уведомление пришло раньше ответа sendMessage: временная копия удаляется', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    store().addMessage(key, pending())
+    store().addMessage(key, message({ idMessage: 'real-1', direction: 'outgoing', status: 'delivered' }))
+
+    store().settleMessage(key, 'local-1', { idMessage: 'real-1' })
+
+    expect(store().messages[key]).toEqual([expect.objectContaining({ idMessage: 'real-1', status: 'delivered' })])
+  })
+
+  test('ошибка отправки: статус failed', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    store().addMessage(key, pending())
+
+    store().settleMessage(key, 'local-1', 'failed')
+
+    expect(store().messages[key][0]).toMatchObject({ idMessage: 'local-1', status: 'failed' })
+  })
+})

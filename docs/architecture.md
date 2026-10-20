@@ -144,3 +144,31 @@ sequenceDiagram
 Шапка с названием мессенджера, своим номером (`formatWid(wid)`) и кнопкой выхода. Под ней форма создания
 чата и список чатов: новые чаты без сообщений сверху, остальные по времени последнего сообщения. У каждого
 чата видны последнее сообщение и счётчик непрочитанных.
+
+### `widgets/chat-window`
+Шапка с собеседником, переписка (`MessageBubble`, автопрокрутка вниз) и поле ввода. На узких экранах
+(< 48em) layout становится одноколоночным: виден либо список чатов, либо открытый чат с кнопкой «Назад».
+
+### `features/send-message`
+`MessageComposer`: Enter отправляет, Shift+Enter переносит строку, лимит 4000 символов. Отправка оптимистичная:
+
+```mermaid
+sequenceDiagram
+  actor U as Пользователь
+  participant M as MessageComposer
+  participant C as useChatStore
+  participant G as GREEN-API
+  U->>M: текст + Enter
+  M->>C: addMessage(local-id, status: pending)
+  M->>G: sendMessage {chatId, message}
+  alt успех
+    G-->>M: {idMessage}
+    M->>C: settleMessage(local-id → idMessage, sent)
+  else ошибка
+    M->>C: settleMessage(local-id, failed)
+    M-->>U: текст ошибки под полем
+  end
+```
+
+Если уведомление `outgoingAPIMessageReceived` с тем же `idMessage` придёт раньше ответа `sendMessage`,
+`settleMessage` удалит временную копию, и дубля не будет.

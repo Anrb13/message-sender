@@ -1,0 +1,52 @@
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat-window--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-window__header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+/* Кнопка «Назад» нужна только в одноколоночном режиме на узких экранах */
+.chat-window__back {
+  display: none;
+}
+
+@media (max-width: 48em) {
+  .chat-window__back {
+    display: inline-flex;
+  }
+}
+
+.chat-window__title {
+  min-width: 0;
+}
+
+.chat-window__messages {
+  flex: 1;
+  min-height: 0;
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+}
+
+.chat-window__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: var(--mantine-spacing-md);
+}
+
+.chat-window__hint {
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
+  text-align: center;
+}
