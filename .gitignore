@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Скриншоты упавших тестов Vitest Browser Mode
+__screenshots__
+# Вложения Vitest (скриншоты и т.п.)
+.vitest-attachments

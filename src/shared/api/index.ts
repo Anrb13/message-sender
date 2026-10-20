@@ -1,6 +1,7 @@
-export { getAdapter } from './green-api/adapters'
+export { getAdapter, isMessengerSupported } from './green-api/adapters'
 export type { MessengerAdapter, ResolvedChat } from './green-api/adapters'
 export { createGreenApiClient, GreenApiError } from './green-api/client'
 export type { GreenApiClient } from './green-api/client'
+export { describeError } from './green-api/errors'
 export { getMessageText } from './green-api/message-text'
 export type * from './green-api/types'

@@ -76,3 +76,42 @@ classDiagram
 
 UI сущности: `ChatListItem` (строка списка чатов) и `MessageBubble` (пузырь сообщения со временем и статусом
 ✓ / ✓✓ / !).
+
+## Фичи
+
+### `features/auth`
+`LoginForm` проверяет учётные данные и сохраняет сессию мессенджера. `LogoutButton` выходит из аккаунта
+и удаляет переписку этого мессенджера.
+
+```mermaid
+sequenceDiagram
+  actor U as Пользователь
+  participant F as LoginForm
+  participant G as GREEN-API
+  participant S as useSessionStore
+  U->>F: idInstance, apiTokenInstance, apiUrl?
+  F->>G: getStateInstance
+  G-->>F: stateInstance
+  alt не authorized или 401
+    F-->>U: понятная ошибка
+  else authorized
+    F->>G: getSettings
+    G-->>F: wid, флаги уведомлений, webhookUrl
+    alt уведомления выключены / задан webhookUrl
+      F-->>U: «Включить и войти» / «Войти без изменений»
+      U->>F: Включить и войти
+      F->>G: setSettings (перезапуск инстанса)
+    end
+    F->>S: login(messenger, session)
+  end
+```
+
+- Пустой `apiUrl` заменяется адресом, вычисленным по `idInstance`.
+- Ошибки GREEN-API переводятся в понятный текст функцией `describeError` ([shared/api](../src/shared/api)).
+
+## Страницы
+
+### `pages/messenger`
+Табы MAX / Telegram / WhatsApp. На табе показывается число непрочитанных сообщений. Содержимое таба зависит
+от сессии этого мессенджера: без неё показывается форма входа, с ней — чат. Неактивные табы не монтируются.
+Табы мессенджеров без адаптера пока отключены.

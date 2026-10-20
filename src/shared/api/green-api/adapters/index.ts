@@ -7,6 +7,10 @@ const adapters: Partial<Record<MessengerType, MessengerAdapter>> = {
   max: maxAdapter,
 }
 
+export function isMessengerSupported(messenger: MessengerType): boolean {
+  return messenger in adapters
+}
+
 export function getAdapter(messenger: MessengerType): MessengerAdapter {
   const adapter = adapters[messenger]
   if (!adapter) throw new Error(`Мессенджер ${messenger} пока не поддерживается`)
