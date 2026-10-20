@@ -1,5 +1,6 @@
 import type {
   CheckAccountResponse,
+  CheckWhatsappResponse,
   Credentials,
   DeleteNotificationResponse,
   InstanceSettings,
@@ -74,6 +75,10 @@ export function createGreenApiClient({ apiUrl, idInstance, apiTokenInstance }: C
     /** MAX и Telegram: проверка аккаунта по номеру; phone — только цифры */
     checkAccount: (phone: string) =>
       request<CheckAccountResponse>('checkAccount', { httpMethod: 'POST', body: { phoneNumber: Number(phone) } }),
+
+    /** WhatsApp: проверка наличия аккаунта по номеру; phone — только цифры */
+    checkWhatsapp: (phone: string) =>
+      request<CheckWhatsappResponse>('checkWhatsapp', { httpMethod: 'POST', body: { phoneNumber: Number(phone) } }),
 
     sendMessage: (payload: SendMessageRequest) =>
       request<SendMessageResponse>('sendMessage', { httpMethod: 'POST', body: payload }),

@@ -1,4 +1,4 @@
-export { getAdapter, isMessengerSupported } from './green-api/adapters'
+export { getAdapter } from './green-api/adapters'
 export type { MessengerAdapter, ResolvedChat } from './green-api/adapters'
 export { createGreenApiClient, GreenApiError } from './green-api/client'
 export type { GreenApiClient } from './green-api/client'

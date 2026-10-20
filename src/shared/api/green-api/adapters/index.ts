@@ -1,20 +1,16 @@
 import type { MessengerType } from '../types'
-import { maxAdapter } from './max'
+import { checkAccountAdapter } from './check-account'
 import type { MessengerAdapter } from './types'
+import { whatsappAdapter } from './whatsapp'
 
-// Адаптеры Telegram и WhatsApp добавляются отдельным шагом
-const adapters: Partial<Record<MessengerType, MessengerAdapter>> = {
-  max: maxAdapter,
-}
-
-export function isMessengerSupported(messenger: MessengerType): boolean {
-  return messenger in adapters
+const adapters: Record<MessengerType, MessengerAdapter> = {
+  max: checkAccountAdapter,
+  telegram: checkAccountAdapter,
+  whatsapp: whatsappAdapter,
 }
 
 export function getAdapter(messenger: MessengerType): MessengerAdapter {
-  const adapter = adapters[messenger]
-  if (!adapter) throw new Error(`Мессенджер ${messenger} пока не поддерживается`)
-  return adapter
+  return adapters[messenger]
 }
 
 export type { MessengerAdapter, ResolvedChat } from './types'

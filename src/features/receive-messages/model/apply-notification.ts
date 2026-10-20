@@ -23,12 +23,14 @@ export function applyNotification(messenger: MessengerType, body: WebhookBody): 
   const incoming = body.typeWebhook === 'incomingMessageReceived'
   const { chatId, chatName, senderName, senderContactName, senderPhoneNumber } = body.senderData
 
-  // В исходящих senderName и senderPhoneNumber — это мы сами, а собеседника описывает только chatName
+  // В исходящих senderName и senderPhoneNumber — это мы сами, а собеседника описывает только chatName.
+  // WhatsApp не присылает senderPhoneNumber, но номер есть в chatId вида 79991234567@c.us
+  const phoneFromChatId = /^(\d+)@c\.us$/.exec(chatId)?.[1]
   const chatKey = upsertChat({
     messenger,
     chatId,
     name: chatName || (incoming ? senderContactName || senderName : undefined),
-    phone: incoming && senderPhoneNumber ? String(senderPhoneNumber) : undefined,
+    phone: phoneFromChatId ?? (incoming && senderPhoneNumber ? String(senderPhoneNumber) : undefined),
   })
 
   addMessage(chatKey, {

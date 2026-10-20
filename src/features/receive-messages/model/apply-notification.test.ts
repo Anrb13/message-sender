@@ -135,3 +135,12 @@ test('прочие уведомления игнорируются', () => {
   expect(() => applyNotification('max', body)).not.toThrow()
   expect(store().chats).toEqual({})
 })
+
+test('WhatsApp: телефон собеседника берётся из chatId вида номер@c.us', () => {
+  applyNotification(
+    'whatsapp',
+    messageWebhook({ senderData: { chatId: '79876543210@c.us', senderName: 'Пётр' } }),
+  )
+
+  expect(store().chats['whatsapp:79876543210@c.us']).toMatchObject({ name: 'Пётр', phone: '79876543210' })
+})

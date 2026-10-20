@@ -130,3 +130,22 @@ describe('createGreenApiClient', () => {
     await expect(client.receiveNotification()).rejects.toMatchObject({ name: 'AbortError' })
   })
 })
+
+describe('checkWhatsapp', () => {
+  const client = createGreenApiClient(credentials)
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test('POST checkWhatsapp с phoneNumber числом', async () => {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse({ existsWhatsapp: true, chatId: '123@lid', phoneNumber: '79991234567@c.us' }))
+
+    await expect(client.checkWhatsapp('79991234567')).resolves.toMatchObject({ existsWhatsapp: true })
+    const [url, init] = spy.mock.calls[0]
+    expect(String(url)).toBe(`${base}/checkWhatsapp/token123`)
+    expect(JSON.parse(String(init?.body))).toEqual({ phoneNumber: 79991234567 })
+  })
+})

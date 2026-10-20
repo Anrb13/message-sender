@@ -42,6 +42,13 @@ export interface CheckAccountResponse {
   chatId: string
 }
 
+/** WhatsApp. Новый формат ответа содержит chatId (может быть …@lid) и phoneNumber (…@c.us), старый — только флаг */
+export interface CheckWhatsappResponse {
+  existsWhatsapp: boolean
+  chatId?: string
+  phoneNumber?: string
+}
+
 export interface SendMessageRequest {
   chatId: string
   message: string

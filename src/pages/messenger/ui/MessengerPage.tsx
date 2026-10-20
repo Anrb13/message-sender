@@ -6,7 +6,7 @@ import { useNotificationPolling } from '@/features/receive-messages'
 import { useChatStore } from '@/entities/chat'
 import { MESSENGERS, MESSENGER_ORDER } from '@/entities/messenger'
 import { useSession, useSessionStore } from '@/entities/session'
-import { isMessengerSupported, type MessengerType } from '@/shared/api'
+import type { MessengerType } from '@/shared/api'
 import { bem } from '@/shared/lib'
 import './MessengerPage.css'
 
@@ -20,15 +20,12 @@ function useUnreadCount(messenger: MessengerType) {
 
 function MessengerTab({ messenger }: { messenger: MessengerType }) {
   const unread = useUnreadCount(messenger)
-  const supported = isMessengerSupported(messenger)
   const { title, color } = MESSENGERS[messenger]
 
   return (
     <Tabs.Tab
       value={messenger}
       color={color}
-      disabled={!supported}
-      title={supported ? undefined : 'Поддержка появится позже'}
       rightSection={
         unread > 0 && (
           <Badge size="sm" circle color={color}>

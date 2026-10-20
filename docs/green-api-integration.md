@@ -41,7 +41,17 @@
 | Формат chatId | числовая строка | числовая строка | `…@c.us` / `…@lid` |
 | `typeInstance` | `v3` | `telegram` | `whatsapp` |
 
-> В MAX `chatId` не совпадает с номером телефона, его назначает сервер. Если отправлять сообщения по номеру,
+Реализации:
+
+- [check-account.ts](../src/shared/api/green-api/adapters/check-account.ts) — общий адаптер для MAX и
+  Telegram: `checkAccount {phoneNumber}` → `{exist, chatId}`.
+- [whatsapp.ts](../src/shared/api/green-api/adapters/whatsapp.ts) — `checkWhatsapp {phoneNumber}` →
+  `{existsWhatsapp, chatId?, phoneNumber?}`. Основным chatId становится `номер@c.us`, потому что по нему надёжно
+  работает отправка. Если в ответе есть скрытый идентификатор `…@lid`, он сохраняется в `aliases` чата:
+  входящие могут прийти с любого из двух, и оба попадут в одну переписку. Номер собеседника во входящих
+  WhatsApp берётся из chatId, потому что `senderPhoneNumber` WhatsApp не присылает.
+
+> В MAX и Telegram `chatId` не совпадает с номером телефона, его назначает сервер. Если отправлять сообщения по номеру,
 > ответы придут с другим `chatId`. Поэтому чат создаётся только после `checkAccount`.
 
 Длину сообщения приложение ограничивает единым лимитом в 4000 символов, это самый строгий лимит (MAX).

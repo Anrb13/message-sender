@@ -72,4 +72,16 @@ describe('MessengerPage', () => {
 
     await expect.element(screen.getByRole('button', { name: /Иван/ })).toHaveTextContent('Ответ получателя')
   })
+
+  test.each([
+    ['Telegram', 'telegram'],
+    ['WhatsApp', 'whatsapp'],
+  ] as const)('таб %s доступен и открывает свою форму входа', async (title, messenger) => {
+    const screen = await renderWithMantine(<MessengerPage />)
+
+    await screen.getByRole('tab', { name: title }).click()
+
+    await expect.element(screen.getByRole('heading', { name: `Вход в ${title}` })).toBeVisible()
+    expect(useSessionStore.getState().activeMessenger).toBe(messenger)
+  })
 })
