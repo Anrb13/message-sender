@@ -230,3 +230,25 @@ describe('recoverPendingMessages', () => {
     expect(store().messages[key][0]).toMatchObject({ idMessage: 'local-1', status: 'failed' })
   })
 })
+
+describe('миграция состояния', () => {
+  test('данные из localStorage версии 0 переживают миграцию', async () => {
+    localStorage.setItem(
+      'message-sender:chats',
+      JSON.stringify({
+        version: 0,
+        state: {
+          chats: { 'max:1': { key: 'max:1', messenger: 'max', chatId: '1', aliases: [], unread: 2 } },
+          messages: { 'max:1': [{ idMessage: 'old', direction: 'incoming', text: 'старое', timestamp: 1 }] },
+          activeChatKey: { max: 'max:1' },
+        },
+      }),
+    )
+
+    await useChatStore.persist.rehydrate()
+
+    expect(store().chats['max:1']).toMatchObject({ unread: 2 })
+    expect(store().messages['max:1']).toHaveLength(1)
+    expect(store().activeChatKey.max).toBe('max:1')
+  })
+})

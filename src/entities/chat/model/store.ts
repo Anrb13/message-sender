@@ -163,6 +163,11 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'message-sender:chats',
+      // Версия схемы состояния. Поднимается вместе с изменением формы Chat/Message, чтобы старые
+      // данные из localStorage можно было превратить в новые, а не потерять.
+      version: 1,
+      // Форма состояния в первой версии не менялась, поэтому миграция возвращает данные как есть
+      migrate: (persisted) => persisted as ChatState,
       onRehydrateStorage: () => (state) => state?.recoverPendingMessages(),
     },
   ),

@@ -39,7 +39,12 @@ export const useSessionStore = create<SessionState>()(
 
       setActiveMessenger: (activeMessenger) => set({ activeMessenger }),
     }),
-    { name: 'message-sender:session' },
+    {
+      name: 'message-sender:session',
+      // Версия схемы состояния: без migrate смена формы Session иначе потеряла бы сессии пользователей
+      version: 1,
+      migrate: (persisted) => persisted as SessionState,
+    },
   ),
 )
 

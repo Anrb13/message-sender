@@ -48,4 +48,16 @@ describe('useSessionStore', () => {
     useSessionStore.getState().login('max', session)
     expect(localStorage.getItem('message-sender:session')).toContain('3100000001')
   })
+
+  test('сессии из localStorage версии 0 переживают миграцию', async () => {
+    localStorage.setItem(
+      'message-sender:session',
+      JSON.stringify({ version: 0, state: { sessions: { max: session }, activeMessenger: 'telegram' } }),
+    )
+
+    await useSessionStore.persist.rehydrate()
+
+    expect(useSessionStore.getState().sessions.max).toEqual(session)
+    expect(useSessionStore.getState().activeMessenger).toBe('telegram')
+  })
 })
