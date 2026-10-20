@@ -41,6 +41,13 @@ describe('createChat', () => {
     expect(useChatStore.getState().chats).toEqual({})
   })
 
+  test('MAX не поддерживает номера вне РФ и Беларуси → ошибка без запроса к API', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+
+    await expect(createChat('max', session, '+49 151 12345678')).rejects.toThrow('РФ и Беларуси')
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   test('ошибка API → понятный текст', async () => {
     mockGreenApi({ checkAccount: () => new Response('', { status: 466 }) })
 
