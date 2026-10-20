@@ -15,6 +15,12 @@ interface ChatState {
   updateStatus: (messenger: MessengerType, chatId: string, idMessage: string, status: MessageStatus) => void
   /** Завершает оптимистичную отправку: подставляет настоящий idMessage или помечает сообщение failed */
   settleMessage: (chatKey: string, tempId: string, outcome: { idMessage: string } | 'failed') => void
+  /**
+   * Помечает failed сообщения, застрявшие в pending — промис sendMessage теряется, если страница
+   * перезагружена до ответа API, и без этого статус «Отправляется…» остался бы навсегда.
+   * Вызывается автоматически при восстановлении стора из localStorage.
+   */
+  recoverPendingMessages: () => void
   setActiveChat: (messenger: MessengerType, chatKey: string | undefined) => void
   /** Удаляет все данные мессенджера — при выходе из его аккаунта */
   resetMessenger: (messenger: MessengerType) => void
@@ -132,6 +138,18 @@ export const useChatStore = create<ChatState>()(
           }
         }),
 
+      recoverPendingMessages: () =>
+        set((state) => ({
+          messages: Object.fromEntries(
+            Object.entries(state.messages).map(([key, list]) => [
+              key,
+              list.some((m) => m.status === 'pending')
+                ? list.map((m) => (m.status === 'pending' ? { ...m, status: 'failed' as const } : m))
+                : list,
+            ]),
+          ),
+        })),
+
       resetMessenger: (messenger) =>
         set((state) => {
           const keep = <T,>(record: Record<string, T>) =>
@@ -141,6 +159,9 @@ export const useChatStore = create<ChatState>()(
           return { chats: keep(state.chats), messages: keep(state.messages), activeChatKey }
         }),
     }),
-    { name: 'message-sender:chats' },
+    {
+      name: 'message-sender:chats',
+      onRehydrateStorage: () => (state) => state?.recoverPendingMessages(),
+    },
   ),
 )

@@ -191,3 +191,28 @@ describe('settleMessage', () => {
     expect(store().messages[key][0]).toMatchObject({ idMessage: 'local-1', status: 'failed' })
   })
 })
+
+describe('recoverPendingMessages', () => {
+  test('сообщения, застрявшие в pending, помечаются failed', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    store().addMessage(key, message({ idMessage: 'local-1', direction: 'outgoing', status: 'pending' }))
+    store().addMessage(key, message({ idMessage: 'real-1', direction: 'outgoing', status: 'sent' }))
+
+    store().recoverPendingMessages()
+
+    expect(store().messages[key]).toEqual([
+      expect.objectContaining({ idMessage: 'local-1', status: 'failed' }),
+      expect.objectContaining({ idMessage: 'real-1', status: 'sent' }),
+    ])
+  })
+
+  test('вызывается автоматически при восстановлении стора из localStorage', async () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    store().addMessage(key, message({ idMessage: 'local-1', direction: 'outgoing', status: 'pending' }))
+
+    // Имитируем перезапуск приложения: стор читает своё состояние из localStorage заново
+    await useChatStore.persist.rehydrate()
+
+    expect(store().messages[key][0]).toMatchObject({ idMessage: 'local-1', status: 'failed' })
+  })
+})
