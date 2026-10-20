@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { useChatStore } from '@/entities/chat'
+import { useSessionStore } from '@/entities/session'
 import type { MessageWebhook, StatusWebhook, WebhookBody } from '@/shared/api'
 import { applyNotification } from './apply-notification'
 
@@ -36,6 +37,11 @@ function statusWebhook(overrides: Partial<StatusWebhook> = {}): StatusWebhook {
 beforeEach(() => {
   localStorage.clear()
   useChatStore.setState(useChatStore.getInitialState())
+  useSessionStore.setState(useSessionStore.getInitialState())
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('applyNotification: входящие', () => {
@@ -143,4 +149,59 @@ test('WhatsApp: телефон собеседника берётся из chatId
   )
 
   expect(store().chats['whatsapp:79876543210@c.us']).toMatchObject({ name: 'Пётр', phone: '79876543210' })
+})
+
+describe('applyNotification: видимость чата', () => {
+  test('входящее в выбранный чат активного таба не увеличивает unread', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '10000000' })
+    store().setActiveChat('max', key)
+    useSessionStore.getState().setActiveMessenger('max')
+
+    applyNotification('max', messageWebhook())
+
+    expect(store().chats[key].unread).toBe(0)
+  })
+
+  test('входящее в выбранный чат неактивного таба увеличивает unread', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '10000000' })
+    store().setActiveChat('max', key)
+    useSessionStore.getState().setActiveMessenger('telegram')
+
+    applyNotification('max', messageWebhook())
+
+    expect(store().chats[key].unread).toBe(1)
+  })
+
+  test('в свёрнутой вкладке браузера unread растёт даже в выбранном чате', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '10000000' })
+    store().setActiveChat('max', key)
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
+
+    applyNotification('max', messageWebhook())
+
+    expect(store().chats[key].unread).toBe(1)
+  })
+})
+
+describe('applyNotification: время и пустой текст', () => {
+  test('timestamp в секундах переводится в миллисекунды', () => {
+    applyNotification('max', messageWebhook({ timestamp: 1_763_115_112 }))
+
+    expect(store().messages['max:10000000'][0].timestamp).toBe(1_763_115_112_000)
+  })
+
+  test('timestamp в миллисекундах не умножается повторно', () => {
+    applyNotification('max', messageWebhook({ timestamp: 1_763_115_112_000 }))
+
+    expect(store().messages['max:10000000'][0].timestamp).toBe(1_763_115_112_000)
+  })
+
+  test('пустой текст не создаёт ни сообщение, ни чат', () => {
+    applyNotification(
+      'max',
+      messageWebhook({ messageData: { typeMessage: 'textMessage', textMessageData: { textMessage: '' } } }),
+    )
+
+    expect(store().chats).toEqual({})
+  })
 })
