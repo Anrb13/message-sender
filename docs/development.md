@@ -29,13 +29,26 @@ entities → shared`, импорты только сверху вниз, каж�
 
 - **Oxlint** ([.oxlintrc.json](../.oxlintrc.json)) — набор правил, эквивалентный рекомендуемым конфигам
   `@eslint/js`, `typescript-eslint`, `react-hooks` и `react-refresh`.
-- **Steiger** ([steiger.config.ts](../steiger.config.ts)) — рекомендуемые правила FSD.
+- **Steiger** ([steiger.config.ts](../steiger.config.ts)) — рекомендуемые правила FSD. Отключено только правило
+  `insignificant-slice`: в маленьком приложении у большинства слайсов один потребитель, а делить на слайсы
+  мы решили сознательно.
 
 ## UI и стили
 
-- Базовые компоненты — [Mantine](https://mantine.dev). Его CSS подключается точечно в
-  [src/app/styles/index.css](../src/app/styles/index.css): при использовании нового компонента Mantine нужно
-  добавить туда его CSS.
+- Базовые компоненты берутся из [Mantine](https://mantine.dev). Его CSS подключается точечно в
+  [src/app/styles/index.css](../src/app/styles/index.css): если используется новый компонент Mantine, туда нужно
+  добавить его CSS. Подключаются версии `*.layer.css`, поэтому стили Mantine лежат в `@layer mantine`, а наши
+  стили всегда приоритетнее.
+- Свои стили пишутся по **БЭМ**: обычный `.css` рядом с компонентом (`ChatListItem.tsx` + `ChatListItem.css`),
+  имя блока — имя компонента в kebab-case, классы `блок__элемент--модификатор`, у модификатора-значения вид
+  `--ключ_значение`. Модификаторы задаются классами, не data-атрибутами. Классы собирает хелпер `bem()`
+  из `@/shared/lib`:
+
+  ```tsx
+  const b = bem('chat-list-item')
+  <button className={b({ active })}>   // chat-list-item chat-list-item--active
+    <div className={b('body')}>        // chat-list-item__body
+  ```
 - Вклад Mantine в бандл (gzip): JS 68.6 → 81.9 КБ, CSS 0 → 4.7 КБ.
 - Ссылки на статику — через импорт или `import.meta.env.BASE_URL`: на GitHub Pages приложение живёт
   в подпапке `/message-sender/`, абсолютные пути `/...` там ломаются.

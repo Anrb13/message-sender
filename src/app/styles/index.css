@@ -2,27 +2,31 @@
  * Стили Mantine подключаем точечно: полный styles.css весит ~295 КБ (42 КБ gzip),
  * а нам нужна лишь часть компонентов. Используя новый компонент Mantine,
  * добавьте сюда его CSS (и CSS компонентов, на которых он построен).
+ *
+ * Используются версии *.layer.css: стили Mantine попадают в @layer mantine, поэтому наши
+ * БЭМ-стили (без слоя) всегда приоритетнее, независимо от порядка подключения.
  */
-@import '@mantine/core/styles/baseline.css';
-@import '@mantine/core/styles/default-css-variables.css';
-@import '@mantine/core/styles/global.css';
+@import '@mantine/core/styles/baseline.layer.css';
+@import '@mantine/core/styles/default-css-variables.layer.css';
+@import '@mantine/core/styles/global.layer.css';
 
-@import '@mantine/core/styles/UnstyledButton.css';
-@import '@mantine/core/styles/Text.css';
-@import '@mantine/core/styles/Title.css';
-@import '@mantine/core/styles/Center.css';
-@import '@mantine/core/styles/Stack.css';
-@import '@mantine/core/styles/Avatar.css';
-@import '@mantine/core/styles/Badge.css';
-@import '@mantine/core/styles/Group.css';
-@import '@mantine/core/styles/Paper.css';
-@import '@mantine/core/styles/Tabs.css';
-@import '@mantine/core/styles/Input.css';
-@import '@mantine/core/styles/PasswordInput.css';
-@import '@mantine/core/styles/ActionIcon.css';
-@import '@mantine/core/styles/Button.css';
-@import '@mantine/core/styles/Loader.css';
-@import '@mantine/core/styles/Alert.css';
+@import '@mantine/core/styles/UnstyledButton.layer.css';
+@import '@mantine/core/styles/Text.layer.css';
+@import '@mantine/core/styles/Title.layer.css';
+@import '@mantine/core/styles/Center.layer.css';
+@import '@mantine/core/styles/Stack.layer.css';
+@import '@mantine/core/styles/Avatar.layer.css';
+@import '@mantine/core/styles/Badge.layer.css';
+@import '@mantine/core/styles/Group.layer.css';
+@import '@mantine/core/styles/Paper.layer.css';
+@import '@mantine/core/styles/Tabs.layer.css';
+@import '@mantine/core/styles/Input.layer.css';
+@import '@mantine/core/styles/PasswordInput.layer.css';
+@import '@mantine/core/styles/ActionIcon.layer.css';
+@import '@mantine/core/styles/Button.layer.css';
+@import '@mantine/core/styles/Loader.layer.css';
+@import '@mantine/core/styles/Alert.layer.css';
+@import '@mantine/core/styles/ScrollArea.layer.css';
 
 html,
 body,

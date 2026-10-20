@@ -1,0 +1,22 @@
+.chat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--mantine-radius-md);
+}
+
+.chat-list-item:hover {
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+}
+
+.chat-list-item--active,
+.chat-list-item--active:hover {
+  background: var(--mantine-primary-color-light);
+}
+
+.chat-list-item__body {
+  flex: 1;
+  min-width: 0;
+}

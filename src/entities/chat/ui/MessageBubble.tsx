@@ -1,9 +1,10 @@
 import { IconAlertCircle, IconCheck, IconChecks, IconClock } from '@tabler/icons-react'
 import type { ReactNode } from 'react'
-import { formatTime } from '@/shared/lib'
+import { bem, formatTime } from '@/shared/lib'
 import type { Message, MessageStatus } from '../model/types'
-import classes from './MessageBubble.module.css'
+import './MessageBubble.css'
 
+const b = bem('message-bubble')
 const ICON_SIZE = 14
 
 const STATUS_VIEW: Record<MessageStatus, { label: string; icon: ReactNode; error?: boolean }> = {
@@ -20,16 +21,14 @@ export function MessageBubble({ message }: { message: Message }) {
   const status = message.direction === 'outgoing' && message.status ? STATUS_VIEW[message.status] : null
 
   return (
-    <div className={classes.row} data-direction={message.direction}>
-      <div className={classes.bubble}>
+    <div className={b({ [message.direction]: true })}>
+      <div className={b('content')}>
         {message.text}
-        <span className={classes.meta}>
+        <span className={b('meta')}>
           {formatTime(message.timestamp)}
           {status && (
             <span
-              className={classes.status}
-              data-status={message.status}
-              data-error={status.error || undefined}
+              className={b('status', { status: message.status, error: status.error })}
               role="img"
               aria-label={status.label}
               title={status.label}

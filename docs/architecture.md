@@ -115,3 +115,32 @@ sequenceDiagram
 Табы MAX / Telegram / WhatsApp. На табе показывается число непрочитанных сообщений. Содержимое таба зависит
 от сессии этого мессенджера: без неё показывается форма входа, с ней — чат. Неактивные табы не монтируются.
 Табы мессенджеров без адаптера пока отключены.
+
+### `features/create-chat`
+`CreateChatForm` принимает номер телефона, `createChat` строит по нему чат:
+
+```mermaid
+sequenceDiagram
+  actor U as Пользователь
+  participant F as CreateChatForm
+  participant A as adapter (MAX)
+  participant G as GREEN-API
+  participant C as useChatStore
+  U->>F: +7 (999) 123-45-67
+  F->>F: normalizePhone → 79991234567
+  F->>A: resolveChatId(phone)
+  A->>G: checkAccount {phoneNumber}
+  G-->>A: {exist, chatId}
+  alt номера нет в мессенджере
+    F-->>U: «Номер не зарегистрирован в MAX»
+  else
+    F->>C: upsertChat + setActiveChat
+  end
+```
+
+## Виджеты
+
+### `widgets/sidebar`
+Шапка с названием мессенджера, своим номером (`formatWid(wid)`) и кнопкой выхода. Под ней форма создания
+чата и список чатов: новые чаты без сообщений сверху, остальные по времени последнего сообщения. У каждого
+чата видны последнее сообщение и счётчик непрочитанных.

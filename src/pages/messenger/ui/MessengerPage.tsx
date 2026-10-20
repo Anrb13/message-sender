@@ -1,10 +1,14 @@
-import { Badge, Group, Stack, Tabs, Text } from '@mantine/core'
-import { LoginForm, LogoutButton } from '@/features/auth'
+import { Badge, Tabs, Text } from '@mantine/core'
+import { Sidebar } from '@/widgets/sidebar'
+import { LoginForm } from '@/features/auth'
 import { useChatStore } from '@/entities/chat'
 import { MESSENGERS, MESSENGER_ORDER } from '@/entities/messenger'
 import { useSession, useSessionStore } from '@/entities/session'
 import { isMessengerSupported, type MessengerType } from '@/shared/api'
-import classes from './MessengerPage.module.css'
+import { bem } from '@/shared/lib'
+import './MessengerPage.css'
+
+const b = bem('messenger-page')
 
 function useUnreadCount(messenger: MessengerType) {
   return useChatStore((state) =>
@@ -41,22 +45,19 @@ function MessengerPanel({ messenger }: { messenger: MessengerType }) {
 
   if (!session) {
     return (
-      <div className={classes.center}>
+      <div className={b('center')}>
         <LoginForm messenger={messenger} />
       </div>
     )
   }
 
-  // Временная заглушка: список чатов и окно переписки появятся на следующих шагах
   return (
-    <div className={classes.center}>
-      <Stack align="center">
-        <Text>Вы вошли в {MESSENGERS[messenger].title}</Text>
-        {session.wid && <Text c="dimmed">{session.wid}</Text>}
-        <Group>
-          <LogoutButton messenger={messenger} />
-        </Group>
-      </Stack>
+    <div className={b('layout')}>
+      <Sidebar messenger={messenger} />
+      {/* Временная заглушка: окно переписки появится на следующем шаге */}
+      <div className={b('center')}>
+        <Text c="dimmed">Выберите чат или создайте новый</Text>
+      </div>
     </div>
   )
 }
@@ -67,7 +68,7 @@ export function MessengerPage() {
 
   return (
     <Tabs
-      className={classes.page}
+      className={b()}
       value={activeMessenger}
       onChange={(value) => value && setActiveMessenger(value as MessengerType)}
       // Неактивные табы не монтируем: у каждого своя форма входа или свой чат
@@ -80,7 +81,7 @@ export function MessengerPage() {
       </Tabs.List>
 
       {MESSENGER_ORDER.map((messenger) => (
-        <Tabs.Panel key={messenger} value={messenger} className={classes.panel}>
+        <Tabs.Panel key={messenger} value={messenger} className={b('panel')}>
           <MessengerPanel messenger={messenger} />
         </Tabs.Panel>
       ))}

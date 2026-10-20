@@ -1,7 +1,10 @@
 import { Avatar, Badge, Text, UnstyledButton } from '@mantine/core'
+import { bem } from '@/shared/lib'
 import { getChatTitle } from '../lib/title'
 import type { Chat } from '../model/types'
-import classes from './ChatListItem.module.css'
+import './ChatListItem.css'
+
+const b = bem('chat-list-item')
 
 interface ChatListItemProps {
   chat: Chat
@@ -14,9 +17,9 @@ export function ChatListItem({ chat, lastMessage, active = false, onSelect }: Ch
   const title = getChatTitle(chat)
 
   return (
-    <UnstyledButton className={classes.item} aria-current={active} onClick={() => onSelect?.(chat.key)}>
+    <UnstyledButton className={b({ active })} aria-current={active} onClick={() => onSelect?.(chat.key)}>
       <Avatar name={title} color="initials" radius="xl" />
-      <div className={classes.body}>
+      <div className={b('body')}>
         <Text size="sm" fw={500} truncate>
           {title}
         </Text>

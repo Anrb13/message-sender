@@ -36,12 +36,12 @@ describe('MessageBubble', () => {
       <MessageBubble message={message({ direction: 'incoming', status: undefined })} />,
     )
 
-    expect(screen.container.querySelector('[data-status]')).toBeNull()
+    expect(screen.container.querySelector('.message-bubble__status')).toBeNull()
   })
 
-  test('направление отражено в data-атрибуте для стилей', async () => {
+  test('направление отражено БЭМ-модификатором', async () => {
     const screen = await renderWithMantine(<MessageBubble message={message({ direction: 'incoming' })} />)
 
-    expect(screen.container.querySelector('[data-direction="incoming"]')).not.toBeNull()
+    expect(screen.container.querySelector('.message-bubble--incoming')).not.toBeNull()
   })
 })

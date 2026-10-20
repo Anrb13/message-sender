@@ -1,0 +1,45 @@
+.message-bubble {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.message-bubble--outgoing {
+  justify-content: flex-end;
+}
+
+.message-bubble__content {
+  max-width: min(70%, 36rem);
+  padding: 0.375rem 0.75rem;
+  border-radius: 1rem;
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  color: var(--mantine-color-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-bubble--outgoing .message-bubble__content {
+  background: light-dark(var(--mantine-primary-color-1), var(--mantine-primary-color-filled));
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.message-bubble__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  float: right;
+  margin: 0.375rem 0 -0.25rem 0.75rem;
+  font-size: var(--mantine-font-size-xs);
+  opacity: 0.7;
+}
+
+.message-bubble__status {
+  display: inline-flex;
+}
+
+.message-bubble__status--status_read {
+  color: light-dark(var(--mantine-primary-color-filled), var(--mantine-color-white));
+}
+
+.message-bubble__status--error {
+  color: var(--mantine-color-red-6);
+}

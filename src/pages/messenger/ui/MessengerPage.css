@@ -1,0 +1,27 @@
+.messenger-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.messenger-page__panel {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Двухколоночный layout как в web.max.ru: список чатов слева, переписка справа */
+.messenger-page__layout {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  min-height: 0;
+}
+
+.messenger-page__center {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mantine-spacing-md);
+}
