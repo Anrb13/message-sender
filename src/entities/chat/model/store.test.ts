@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest'
+import { MAX_MESSAGES_PER_CHAT } from '@/shared/config'
 import { findChatKey, useChatStore } from './store'
 import type { Message } from './types'
 
@@ -99,6 +100,19 @@ describe('addMessage', () => {
     store().addMessage(key, message({ timestamp: 5_000 }))
 
     expect(store().chats[key].lastMessageAt).toBe(5_000)
+  })
+
+  test(`хранит не больше ${MAX_MESSAGES_PER_CHAT} сообщений, старые обрезаются`, () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    const total = MAX_MESSAGES_PER_CHAT + 10
+    for (let i = 0; i < total; i++) {
+      store().addMessage(key, message({ idMessage: `m${i}`, timestamp: i }))
+    }
+
+    const list = store().messages[key]
+    expect(list).toHaveLength(MAX_MESSAGES_PER_CHAT)
+    expect(list[0].idMessage).toBe('m10')
+    expect(list.at(-1)?.idMessage).toBe(`m${total - 1}`)
   })
 })
 

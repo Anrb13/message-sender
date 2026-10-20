@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { MessengerType } from '@/shared/api'
+import { MAX_MESSAGES_PER_CHAT } from '@/shared/config'
 import type { Chat, Message, MessageStatus, UpsertChatInput } from './types'
 
 interface ChatState {
@@ -83,7 +84,8 @@ export const useChatStore = create<ChatState>()(
           // Одно и то же сообщение может прийти дважды: из ответа sendMessage и из уведомления
           if (!chat || list.some((m) => m.idMessage === message.idMessage)) return state
 
-          const messages = [...list, message].sort((a, b) => a.timestamp - b.timestamp)
+          // Переписка хранится в localStorage целиком — обрезаем старые сообщения, чтобы не упереться в квоту
+          const messages = [...list, message].sort((a, b) => a.timestamp - b.timestamp).slice(-MAX_MESSAGES_PER_CHAT)
           const isActive = state.activeChatKey[chat.messenger] === chatKey
           const unread = message.direction === 'incoming' && !isActive ? chat.unread + 1 : chat.unread
 
