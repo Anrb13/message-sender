@@ -59,7 +59,7 @@ entities → shared`, импорты только сверху вниз, каж�
     <div className={b('body')}>        // chat-list-item__body
   ```
 - Вклад Mantine в бандл (gzip): JS 68.6 → 81.9 КБ, CSS 0 → 4.7 КБ. Итоговый бандл приложения:
-  JS 110 КБ, CSS 12.4 КБ.
+  JS 110.7 КБ, CSS 12.4 КБ.
 - Ссылки на статику — через импорт или `import.meta.env.BASE_URL`: на GitHub Pages приложение живёт
   в подпапке `/message-sender/`, абсолютные пути `/...` там ломаются.
 
