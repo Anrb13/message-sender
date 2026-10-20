@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-react'
 import { useChatStore } from '@/entities/chat'
@@ -94,5 +95,35 @@ test('вход в другой мессенджер не прерывает уж
   await expect.poll(() => telegramSignal).toBeDefined()
 
   expect(maxSignal?.aborted).toBe(false)
+  await screen.unmount()
+})
+
+test('StrictMode (dev) не останавливает приём после повторного монтирования', async () => {
+  // StrictMode прогоняет эффекты дважды: setup → cleanup → setup. Если cleanup забывает соединение,
+  // второй запуск эффекта решает, что цикл уже идёт, и сообщения перестают приходить до перезагрузки
+  const second = {
+    receiptId: 2,
+    body: {
+      ...incoming.body,
+      idMessage: 'in-2',
+      messageData: { typeMessage: 'textMessage', textMessageData: { textMessage: 'Второй ответ' } },
+    },
+  }
+  const queue: unknown[] = [incoming, second]
+  mockGreenApi({
+    receiveNotification: async () => queue.shift() ?? new Promise((resolve) => setTimeout(() => resolve(null), 50)),
+    deleteNotification: () => ({ result: true }),
+  })
+  useSessionStore.getState().login('max', { apiUrl: 'https://x', idInstance: '1', apiTokenInstance: 't' })
+
+  const screen = await render(
+    <StrictMode>
+      <Poller />
+    </StrictMode>,
+  )
+
+  await expect
+    .poll(() => useChatStore.getState().messages['max:10000000']?.map((message) => message.text))
+    .toEqual(['Ответ из MAX', 'Второй ответ'])
   await screen.unmount()
 })

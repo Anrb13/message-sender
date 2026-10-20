@@ -52,12 +52,18 @@ export function useNotificationPolling() {
     }
   }, [sessions])
 
-  // Размонтирование страницы — останавливаем все ещё работающие циклы
+  // Размонтирование страницы — останавливаем все ещё работающие циклы.
+  // Записи из ref нужно именно удалять: в dev-режиме StrictMode прогоняет эффекты дважды
+  // (setup → cleanup → setup), и первый эффект на втором запуске увидел бы «живые» ключи,
+  // пропустил все мессенджеры и не запустил приём заново — сообщения перестали бы приходить
+  // до перезагрузки страницы.
   useEffect(
     () => () => {
-      for (const messenger of Object.keys(connections.current) as MessengerType[]) {
-        connections.current[messenger]?.controller.abort()
+      const current = connections.current
+      for (const messenger of Object.keys(current) as MessengerType[]) {
+        current[messenger]?.controller.abort()
         useConnectionStore.getState().setError(messenger, null)
+        delete current[messenger]
       }
     },
     [],
