@@ -1,0 +1,20 @@
+/*
+ * Стили Mantine подключаем точечно: полный styles.css весит ~295 КБ (42 КБ gzip),
+ * а нам нужна лишь часть компонентов. Используя новый компонент Mantine,
+ * добавьте сюда его CSS (и CSS компонентов, на которых он построен).
+ */
+@import '@mantine/core/styles/baseline.css';
+@import '@mantine/core/styles/default-css-variables.css';
+@import '@mantine/core/styles/global.css';
+
+@import '@mantine/core/styles/UnstyledButton.css';
+@import '@mantine/core/styles/Text.css';
+@import '@mantine/core/styles/Title.css';
+@import '@mantine/core/styles/Center.css';
+@import '@mantine/core/styles/Stack.css';
+
+html,
+body,
+#root {
+  height: 100%;
+}

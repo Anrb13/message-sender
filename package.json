@@ -9,14 +9,19 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "lint:fsd": "steiger ./src"
   },
   "dependencies": {
+    "@mantine/core": "^9.7.3",
+    "@mantine/hooks": "^9.7.3",
+    "@tabler/icons-react": "^3.49.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@feature-sliced/steiger-plugin": "^0.8.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -24,6 +29,7 @@
     "@vitest/browser-playwright": "^4.1.12",
     "oxlint": "^1.89.0",
     "playwright": "^1.64.1",
+    "steiger": "^0.8.0",
     "typescript": "~6.0.3",
     "vite": "^8.3.4",
     "vitest": "^4.1.12",
