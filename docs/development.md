@@ -77,4 +77,4 @@ npm ci → Oxlint → Steiger → typecheck → тесты (Chromium) → сбо
 ## Соглашения
 
 - Комментарии в коде — на русском, там где логика неочевидна.
-- Один логический шаг — один коммит (Conventional Commits: `feat:`, `test:`, `chore:`, `docs:`, `ci:`).
+- Один логический шаг — один коммит (Conventional Commits: `feat:`, `fix:`, `test:`, `chore:`, `docs:`, `ci:`).

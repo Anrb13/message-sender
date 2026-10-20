@@ -8,7 +8,13 @@ export interface Session extends Credentials {
 }
 
 interface SessionState {
-  /** У каждого мессенджера свой инстанс GREEN-API, а значит и свои учётные данные */
+  /**
+   * У каждого мессенджера свой инстанс GREEN-API, а значит и свои учётные данные. persist хранит их,
+   * включая apiTokenInstance, в localStorage открытым текстом — осознанный компромисс: без бэкенда
+   * токен в любом случае должен быть доступен клиентскому коду для прямых запросов к GREEN-API,
+   * так что шифрование на фронтенде не защитило бы от XSS. Поэтому критично не добавлять в проект
+   * сторонние скрипты и пакеты без аудита.
+   */
   sessions: Partial<Record<MessengerType, Session>>
   activeMessenger: MessengerType
   login: (messenger: MessengerType, session: Session) => void

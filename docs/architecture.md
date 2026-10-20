@@ -39,6 +39,10 @@ flowchart TD
 - `activeMessenger`: выбранный таб;
 - `login(messenger, session)`, `logout(messenger)`, `setActiveMessenger(messenger)`.
 
+`apiTokenInstance` хранится в localStorage открытым текстом — без бэкенда он в любом случае нужен клиентскому
+коду для прямых запросов к GREEN-API, шифрование на фронтенде не защитило бы от XSS. Поэтому критично не
+добавлять в проект сторонние пакеты без аудита.
+
 ### `entities/chat`
 `useChatStore` (Zustand + persist, ключ `message-sender:chats`):
 
@@ -73,6 +77,12 @@ classDiagram
   любой статус.
 - `setActiveChat`: свой выбранный чат у каждого мессенджера, при выборе `unread` сбрасывается.
 - `resetMessenger`: при выходе удаляются данные только этого мессенджера.
+- `addMessage` хранит не больше `MAX_MESSAGES_PER_CHAT` (1000, [shared/config](../src/shared/config)) сообщений
+  на чат, обрезая старые — вся переписка лежит в localStorage, и история не должна расти бесконечно.
+- `recoverPendingMessages`: вызывается автоматически при восстановлении стора из localStorage (то есть на
+  каждой загрузке страницы) и помечает `failed` сообщения, застрявшие в `pending`. Это сообщения, у которых
+  промис `sendMessage` потерялся из-за перезагрузки страницы до ответа API — без этого статус «Отправляется…»
+  остался бы навсегда.
 
 UI сущности: `ChatListItem` (строка списка чатов) и `MessageBubble` (пузырь сообщения со временем и статусом
 ✓ / ✓✓ / !).
@@ -158,7 +168,8 @@ sequenceDiagram
 ### `features/receive-messages`
 Приём сообщений через HTTP API GREEN-API (long polling). `useNotificationPolling` вызывается на странице
 и запускает отдельный цикл `pollNotifications` для **каждого** подключённого мессенджера, поэтому сообщения
-приходят и в неактивные табы.
+приходят и в неактивные табы. Вход или выход перезапускает цикл только своего мессенджера — остальные,
+уже подключённые, продолжают приём без перерыва.
 
 ```mermaid
 sequenceDiagram
