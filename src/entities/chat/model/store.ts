@@ -2,7 +2,9 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { MessengerType } from '@/shared/api'
 import { MAX_MESSAGES_PER_CHAT } from '@/shared/config'
-import type { Chat, Message, MessageStatus, UpsertChatInput } from './types'
+import { createQuotaSafeStorage } from './quota-storage'
+import { useStorageNoticeStore } from './storage-notice'
+import type { AddMessageOptions, Chat, Message, MessageStatus, UpsertChatInput } from './types'
 
 interface ChatState {
   chats: Record<string, Chat>
@@ -12,7 +14,7 @@ interface ChatState {
   activeChatKey: Partial<Record<MessengerType, string>>
   /** Создаёт чат или дополняет существующий; возвращает ключ чата */
   upsertChat: (input: UpsertChatInput) => string
-  addMessage: (chatKey: string, message: Message) => void
+  addMessage: (chatKey: string, message: Message, options?: AddMessageOptions) => void
   updateStatus: (messenger: MessengerType, chatId: string, idMessage: string, status: MessageStatus) => void
   /** Завершает оптимистичную отправку: подставляет настоящий idMessage или помечает сообщение failed */
   settleMessage: (chatKey: string, tempId: string, outcome: { idMessage: string } | 'failed') => void
@@ -77,7 +79,7 @@ export const useChatStore = create<ChatState>()(
         return key
       },
 
-      addMessage: (chatKey, message) =>
+      addMessage: (chatKey, message, options) =>
         set((state) => {
           const chat = state.chats[chatKey]
           const list = state.messages[chatKey] ?? []
@@ -86,8 +88,10 @@ export const useChatStore = create<ChatState>()(
 
           // Переписка хранится в localStorage целиком — обрезаем старые сообщения, чтобы не упереться в квоту
           const messages = [...list, message].sort((a, b) => a.timestamp - b.timestamp).slice(-MAX_MESSAGES_PER_CHAT)
-          const isActive = state.activeChatKey[chat.messenger] === chatKey
-          const unread = message.direction === 'incoming' && !isActive ? chat.unread + 1 : chat.unread
+          // Вызывающий код знает, виден ли чат на самом деле: выбранный чат невидимого таба или
+          // свёрнутого окна прочитанным считать нельзя
+          const visible = options?.visible ?? (state.activeChatKey[chat.messenger] === chatKey)
+          const unread = message.direction === 'incoming' && !visible ? chat.unread + 1 : chat.unread
 
           return {
             messages: { ...state.messages, [chatKey]: messages },
@@ -168,6 +172,22 @@ export const useChatStore = create<ChatState>()(
       version: 1,
       // Форма состояния в первой версии не менялась, поэтому миграция возвращает данные как есть
       migrate: (persisted) => persisted as ChatState,
+      // Переполнение квоты localStorage не должно ронять отправку и приём: история обрезается
+      storage: createQuotaSafeStorage<ChatState>({
+        storage: localStorage,
+        onTrim: (messages, removed) => {
+          useStorageNoticeStore.getState().notify(removed)
+          // Синхронизируем память с тем, что реально сохранилось: иначе следующая запись снова
+          // не влезет в квоту. Микрозадача — чтобы не запускать persist повторно внутри текущей записи.
+          queueMicrotask(() => {
+            try {
+              useChatStore.setState({ messages })
+            } catch (error) {
+              console.error('Не удалось обрезать историю под квоту localStorage', error)
+            }
+          })
+        },
+      }),
       onRehydrateStorage: () => (state) => state?.recoverPendingMessages(),
     },
   ),

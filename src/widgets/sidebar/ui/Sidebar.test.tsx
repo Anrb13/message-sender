@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest'
-import { useChatStore } from '@/entities/chat'
+import { useChatStore, useStorageNoticeStore } from '@/entities/chat'
 import { useSessionStore } from '@/entities/session'
 import { renderWithMantine } from '@/shared/lib/test'
 import { Sidebar } from './Sidebar'
@@ -10,6 +10,7 @@ beforeEach(() => {
   localStorage.clear()
   useChatStore.setState(useChatStore.getInitialState())
   useSessionStore.setState(useSessionStore.getInitialState())
+  useStorageNoticeStore.setState(useStorageNoticeStore.getInitialState())
   useSessionStore.getState().login('max', {
     apiUrl: 'https://x',
     idInstance: '1',
@@ -56,5 +57,17 @@ describe('Sidebar', () => {
     await screen.getByRole('button', { name: /Иван/ }).click()
 
     expect(chats().activeChatKey.max).toBe(key)
+  })
+
+  test('предупреждает об обрезке истории и позволяет скрыть предупреждение', async () => {
+    useStorageNoticeStore.getState().notify(7)
+    const screen = await renderWithMantine(<Sidebar messenger="max" />)
+
+    await expect.element(screen.getByText(/Удалено старых сообщений: 7/)).toBeVisible()
+
+    await screen.getByRole('button', { name: 'Скрыть' }).click()
+
+    expect(useStorageNoticeStore.getState().removed).toBe(0)
+    expect(screen.container.textContent).not.toContain('История обрезана')
   })
 })

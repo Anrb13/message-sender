@@ -1,9 +1,9 @@
-import { ScrollArea, Text } from '@mantine/core'
+import { Alert, ScrollArea, Text } from '@mantine/core'
 import { useMemo } from 'react'
 import { LogoutButton } from '@/features/auth'
 import { CreateChatForm } from '@/features/create-chat'
 import { ConnectionStatus } from '@/features/receive-messages'
-import { ChatListItem, useChatStore } from '@/entities/chat'
+import { ChatListItem, useChatStore, useStorageNoticeStore } from '@/entities/chat'
 import { MESSENGERS } from '@/entities/messenger'
 import { formatWid, useSession } from '@/entities/session'
 import type { MessengerType } from '@/shared/api'
@@ -21,6 +21,8 @@ export function Sidebar({ messenger }: { messenger: MessengerType }) {
   const messages = useChatStore((state) => state.messages)
   const activeChatKey = useChatStore((state) => state.activeChatKey[messenger])
   const setActiveChat = useChatStore((state) => state.setActiveChat)
+  const removedMessages = useStorageNoticeStore((state) => state.removed)
+  const dismissStorageNotice = useStorageNoticeStore((state) => state.dismiss)
 
   const chats = useMemo(
     () =>
@@ -46,6 +48,19 @@ export function Sidebar({ messenger }: { messenger: MessengerType }) {
 
       <div className={b('status')}>
         <ConnectionStatus messenger={messenger} />
+        {removedMessages > 0 && (
+          <Alert
+            color="yellow"
+            variant="light"
+            p="xs"
+            title="История обрезана"
+            withCloseButton
+            closeButtonLabel="Скрыть"
+            onClose={dismissStorageNotice}
+          >
+            Удалено старых сообщений: {removedMessages}. Иначе переписка не помещается в память браузера.
+          </Alert>
+        )}
       </div>
 
       <div className={b('create-chat')}>

@@ -102,6 +102,24 @@ describe('addMessage', () => {
     expect(store().chats[key].lastMessageAt).toBe(5_000)
   })
 
+  test('входящее в выбранный чат невидимого таба увеличивает unread', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+    store().setActiveChat('max', key)
+
+    // Пользователь на другом табе или свернул браузер: чат выбран, но не виден
+    store().addMessage(key, message(), { visible: false })
+
+    expect(store().chats[key].unread).toBe(1)
+  })
+
+  test('явно видимый чат не увеличивает unread, даже если он не выбран', () => {
+    const key = store().upsertChat({ messenger: 'max', chatId: '1' })
+
+    store().addMessage(key, message(), { visible: true })
+
+    expect(store().chats[key].unread).toBe(0)
+  })
+
   test(`хранит не больше ${MAX_MESSAGES_PER_CHAT} сообщений, старые обрезаются`, () => {
     const key = store().upsertChat({ messenger: 'max', chatId: '1' })
     const total = MAX_MESSAGES_PER_CHAT + 10

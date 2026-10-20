@@ -35,3 +35,11 @@ export interface UpsertChatInput {
   name?: string
   phone?: string
 }
+
+export interface AddMessageOptions {
+  /**
+   * Видит ли пользователь этот чат прямо сейчас: таб мессенджера активен, чат выбран, вкладка браузера
+   * не скрыта. Если не передано, считается, что виден только выбранный чат.
+   */
+  visible?: boolean
+}
