@@ -71,3 +71,28 @@ test('ошибка приёма отражается в статусе соед�
   await expect.poll(() => useConnectionStore.getState().errors.max).toContain('webhookUrl')
   await screen.unmount()
 })
+
+test('вход в другой мессенджер не прерывает уже запущенный приём для первого', async () => {
+  // Сигнал первого (и только первого) запроса на мессенджер — если бы цикл перезапускался,
+  // второй вызов для того же инстанса перезаписал бы его новым, уже не прерванным, сигналом
+  let maxSignal: AbortSignal | undefined
+  let telegramSignal: AbortSignal | undefined
+  mockGreenApi({
+    receiveNotification: ({ url, init }) => {
+      if (url.includes('waInstance1/') && !maxSignal) maxSignal = init.signal as AbortSignal
+      if (url.includes('waInstance2/')) telegramSignal = init.signal as AbortSignal
+      // "Зависшее" long polling ожидание — до конца теста ответа не будет
+      return new Promise(() => {})
+    },
+  })
+  useSessionStore.getState().login('max', { apiUrl: 'https://x', idInstance: '1', apiTokenInstance: 't' })
+
+  const screen = await render(<Poller />)
+  await expect.poll(() => maxSignal).toBeDefined()
+
+  useSessionStore.getState().login('telegram', { apiUrl: 'https://x', idInstance: '2', apiTokenInstance: 't' })
+  await expect.poll(() => telegramSignal).toBeDefined()
+
+  expect(maxSignal?.aborted).toBe(false)
+  await screen.unmount()
+})
