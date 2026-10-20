@@ -12,6 +12,8 @@
 @import '@mantine/core/styles/Title.css';
 @import '@mantine/core/styles/Center.css';
 @import '@mantine/core/styles/Stack.css';
+@import '@mantine/core/styles/Avatar.css';
+@import '@mantine/core/styles/Badge.css';
 
 html,
 body,

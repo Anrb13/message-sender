@@ -1,0 +1,21 @@
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--mantine-radius-md);
+
+  &:hover {
+    background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  }
+
+  &[aria-current='true'] {
+    background: light-dark(var(--mantine-primary-color-light), var(--mantine-primary-color-light));
+  }
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
