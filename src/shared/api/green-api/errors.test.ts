@@ -14,6 +14,10 @@ describe('describeError', () => {
     expect(describeError(new GreenApiError(status, ''))).toContain(text)
   })
 
+  test('400 «custom webhook url is set» → подсказка очистить webhookUrl', () => {
+    expect(describeError(new GreenApiError(400, 'custom webhook url is set'))).toContain('webhookUrl')
+  })
+
   test('обычная ошибка → её текст', () => {
     expect(describeError(new Error('Что-то сломалось'))).toBe('Что-то сломалось')
   })

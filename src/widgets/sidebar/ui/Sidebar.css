@@ -13,6 +13,14 @@
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
 }
 
+.sidebar__status {
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-sm);
+}
+
+.sidebar__status:empty {
+  display: none;
+}
+
 .sidebar__create-chat {
   padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-sm);
 }

@@ -46,3 +46,23 @@
 
 Длину сообщения приложение ограничивает единым лимитом в 4000 символов, это самый строгий лимит (MAX).
 Константа `MESSAGE_MAX_LENGTH` лежит в [shared/config](../src/shared/config/index.ts).
+
+## Приём уведомлений
+
+Используется HTTP API (`receiveNotification` + `deleteNotification`), вебхуки не нужны. Условия:
+
+- в настройках инстанса **пустой `webhookUrl`**. Иначе `receiveNotification` отвечает
+  `400 custom webhook url is set`;
+- включены `incomingWebhook` (входящие), `outgoingWebhook` (статусы доставки) и `outgoingMessageWebhook`
+  (сообщения, отправленные с телефона). В новом инстансе они выключены, поэтому форма входа предлагает
+  включить их через `setSettings`.
+
+| `typeWebhook` | Что делает приложение |
+|---|---|
+| `incomingMessageReceived` | добавляет входящее сообщение, при необходимости создаёт чат |
+| `outgoingMessageReceived` | добавляет исходящее, отправленное с телефона |
+| `outgoingAPIMessageReceived` | добавляет исходящее, если его ещё нет (обычно уже есть из ответа `sendMessage`) |
+| `outgoingMessageStatus` | обновляет статус: `delivered`, `read`, `failed`, `noAccount`, `notInGroup` |
+| остальные | игнорирует (но удаляет из очереди) |
+
+`timestamp` в уведомлениях приходит в секундах, в приложении хранится в миллисекундах.

@@ -2,6 +2,7 @@ import { Badge, Tabs } from '@mantine/core'
 import { ChatWindow } from '@/widgets/chat-window'
 import { Sidebar } from '@/widgets/sidebar'
 import { LoginForm } from '@/features/auth'
+import { useNotificationPolling } from '@/features/receive-messages'
 import { useChatStore } from '@/entities/chat'
 import { MESSENGERS, MESSENGER_ORDER } from '@/entities/messenger'
 import { useSession, useSessionStore } from '@/entities/session'
@@ -64,6 +65,8 @@ function MessengerPanel({ messenger }: { messenger: MessengerType }) {
 export function MessengerPage() {
   const activeMessenger = useSessionStore((state) => state.activeMessenger)
   const setActiveMessenger = useSessionStore((state) => state.setActiveMessenger)
+  // Приём сообщений работает для всех подключённых мессенджеров, а не только для открытого таба
+  useNotificationPolling()
 
   return (
     <Tabs

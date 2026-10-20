@@ -1,15 +1,27 @@
-import { beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { useChatStore } from '@/entities/chat'
 import { useSessionStore } from '@/entities/session'
-import { renderWithMantine } from '@/shared/lib/test'
+import { mockGreenApi, renderWithMantine } from '@/shared/lib/test'
 import { MessengerPage } from './MessengerPage'
 
 const session = { apiUrl: 'https://x', idInstance: '1', apiTokenInstance: 't', wid: '79991234567@c.us' }
+
+let queue: unknown[] = []
 
 beforeEach(() => {
   localStorage.clear()
   useSessionStore.setState(useSessionStore.getInitialState())
   useChatStore.setState(useChatStore.getInitialState())
+  // Страница запускает приём уведомлений: отдаём очередь, а при пустой — имитируем long polling
+  queue = []
+  mockGreenApi({
+    receiveNotification: async () => queue.shift() ?? new Promise((resolve) => setTimeout(() => resolve(null), 50)),
+    deleteNotification: () => ({ result: true }),
+  })
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('MessengerPage', () => {
@@ -42,5 +54,22 @@ describe('MessengerPage', () => {
     const screen = await renderWithMantine(<MessengerPage />)
 
     await expect.element(screen.getByRole('tab', { name: /MAX/ })).toHaveTextContent('2')
+  })
+
+  test('входящее сообщение из MAX появляется в списке чатов', async () => {
+    useSessionStore.getState().login('max', session)
+    queue.push({
+      receiptId: 1,
+      body: {
+        typeWebhook: 'incomingMessageReceived',
+        timestamp: 1_763_115_112,
+        idMessage: 'in-1',
+        senderData: { chatId: '10000000', senderName: 'Иван' },
+        messageData: { typeMessage: 'textMessage', textMessageData: { textMessage: 'Ответ получателя' } },
+      },
+    })
+    const screen = await renderWithMantine(<MessengerPage />)
+
+    await expect.element(screen.getByRole('button', { name: /Иван/ })).toHaveTextContent('Ответ получателя')
   })
 })

@@ -2,6 +2,7 @@ import { ScrollArea, Text } from '@mantine/core'
 import { useMemo } from 'react'
 import { LogoutButton } from '@/features/auth'
 import { CreateChatForm } from '@/features/create-chat'
+import { ConnectionStatus } from '@/features/receive-messages'
 import { ChatListItem, useChatStore } from '@/entities/chat'
 import { MESSENGERS } from '@/entities/messenger'
 import { formatWid, useSession } from '@/entities/session'
@@ -41,6 +42,10 @@ export function Sidebar({ messenger }: { messenger: MessengerType }) {
           )}
         </div>
         <LogoutButton messenger={messenger} />
+      </div>
+
+      <div className={b('status')}>
+        <ConnectionStatus messenger={messenger} />
       </div>
 
       <div className={b('create-chat')}>

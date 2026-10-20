@@ -172,3 +172,42 @@ sequenceDiagram
 
 Если уведомление `outgoingAPIMessageReceived` с тем же `idMessage` придёт раньше ответа `sendMessage`,
 `settleMessage` удалит временную копию, и дубля не будет.
+
+### `features/receive-messages`
+Приём сообщений через HTTP API GREEN-API (long polling). `useNotificationPolling` вызывается на странице
+и запускает отдельный цикл `pollNotifications` для **каждого** подключённого мессенджера, поэтому сообщения
+приходят и в неактивные табы.
+
+```mermaid
+sequenceDiagram
+  participant P as pollNotifications
+  participant G as GREEN-API
+  participant A as applyNotification
+  participant C as useChatStore
+  loop пока не отменён AbortSignal
+    P->>G: receiveNotification?receiveTimeout=20
+    alt очередь пуста
+      G-->>P: null (по таймауту)
+    else уведомление
+      G-->>P: {receiptId, body}
+      P->>A: body
+      A->>C: upsertChat / addMessage / updateStatus
+      P->>G: deleteNotification/{receiptId}
+    else ошибка
+      P-->>P: статус ошибки → пауза 1 → 2 → 5 с
+    end
+  end
+```
+
+- `applyNotification` — чистая функция:
+  - `incomingMessageReceived` создаёт чат, если его ещё нет (имя и телефон берутся из `senderData`), и добавляет
+    входящее сообщение;
+  - `outgoingMessageReceived` (отправлено с телефона) и `outgoingAPIMessageReceived` добавляют исходящее.
+    Дубли отсекаются по `idMessage`;
+  - `outgoingMessageStatus` обновляет статус доставки;
+  - нетекстовые сообщения и прочие уведомления игнорируются.
+- Уведомление удаляется **всегда**, даже если обработчик упал. Иначе GREEN-API будет отдавать его снова,
+  и очередь встанет. Повторная доставка безопасна благодаря дедупликации.
+- Ошибки приёма попадают в `useConnectionStore`, и `ConnectionStatus` показывает их в сайдбаре. Например,
+  если в инстансе задан `webhookUrl`, пользователь увидит подсказку очистить его. Цикл при этом
+  переподключается сам.

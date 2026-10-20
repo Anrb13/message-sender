@@ -3,6 +3,10 @@ import { GreenApiError } from './client'
 /** Человекочитаемое описание ошибки запроса к GREEN-API */
 export function describeError(error: unknown): string {
   if (error instanceof GreenApiError) {
+    // Пока в инстансе задан webhookUrl, receiveNotification отвечает 400 — частая причина «ответы не приходят»
+    if (error.status === 400 && /webhook/i.test(error.message)) {
+      return 'В инстансе задан webhookUrl — очистите его в личном кабинете GREEN-API, иначе входящие не приходят'
+    }
     switch (error.status) {
       case 0:
         return 'Не удалось связаться с GREEN-API. Проверьте apiUrl и подключение к интернету'
