@@ -99,4 +99,22 @@ describe('pollNotifications', () => {
 
     expect(receiveNotification).toHaveBeenCalledTimes(3)
   })
+
+  test('пауза между повторами не копит подписки на abort', async () => {
+    const add = vi.spyOn(controller.signal, 'addEventListener')
+    const remove = vi.spyOn(controller.signal, 'removeEventListener')
+    const { client } = scriptedClient(controller, [new GreenApiError(500, ''), null])
+
+    await pollNotifications({
+      client,
+      signal: controller.signal,
+      onNotification: vi.fn(),
+      onStatus: vi.fn(),
+      retryDelays: [1],
+    })
+
+    // Одна пауза — одна подписка, и после неё она снята
+    expect(add).toHaveBeenCalledTimes(1)
+    expect(remove).toHaveBeenCalledTimes(1)
+  })
 })

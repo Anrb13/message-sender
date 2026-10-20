@@ -20,11 +20,15 @@ function isAbortError(error: unknown) {
 
 function sleep(ms: number, signal: AbortSignal) {
   return new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, ms)
-    signal.addEventListener('abort', () => {
+    const finish = () => {
+      // Подписку снимаем и в штатном пути: иначе на одном сигнале за час переподключений
+      // накапливаются сотни слушателей
+      signal.removeEventListener('abort', finish)
       clearTimeout(timer)
       resolve()
-    })
+    }
+    const timer = setTimeout(finish, ms)
+    signal.addEventListener('abort', finish, { once: true })
   })
 }
 
