@@ -5,6 +5,7 @@ import { MessageComposer } from '@/features/send-message'
 import { getChatTitle, MessageBubble, useChatStore, type Message } from '@/entities/chat'
 import type { MessengerType } from '@/shared/api'
 import { bem } from '@/shared/lib'
+import { isNearBottom } from '../lib/scroll'
 import './ChatWindow.css'
 
 const b = bem('chat-window')
@@ -16,10 +17,19 @@ export function ChatWindow({ messenger }: { messenger: MessengerType }) {
   const messages = useChatStore((state) => (chatKey ? state.messages[chatKey] : undefined) ?? NO_MESSAGES)
   const setActiveChat = useChatStore((state) => state.setActiveChat)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  // «Прилип» ли пользователь к низу переписки: пока да — новые сообщения прокручиваем,
+  // но тому, кто читает историю выше, прокрутку не выдёргиваем
+  const atBottomRef = useRef(true)
+  const shownChatKey = useRef(chatKey)
 
-  // Новое сообщение или смена чата — прокручиваем переписку вниз
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' })
+    // Другой чат всегда открываем на последнем сообщении
+    if (shownChatKey.current !== chatKey) {
+      shownChatKey.current = chatKey
+      atBottomRef.current = true
+    }
+    if (atBottomRef.current) bottomRef.current?.scrollIntoView({ block: 'end' })
   }, [chatKey, messages.length])
 
   if (!chatKey || !chat) {
@@ -57,7 +67,19 @@ export function ChatWindow({ messenger }: { messenger: MessengerType }) {
         </div>
       </header>
 
-      <ScrollArea className={b('messages')}>
+      <ScrollArea
+        className={b('messages')}
+        viewportRef={viewportRef}
+        onScrollPositionChange={({ y }) => {
+          const viewport = viewportRef.current
+          if (!viewport) return
+          atBottomRef.current = isNearBottom({
+            scrollTop: y,
+            scrollHeight: viewport.scrollHeight,
+            clientHeight: viewport.clientHeight,
+          })
+        }}
+      >
         {messages.length === 0 ? (
           <Text className={b('hint')} size="sm" c="dimmed">
             Сообщений пока нет. Напишите первым!
