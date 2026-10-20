@@ -79,7 +79,7 @@ describe('createGreenApiClient', () => {
     expect(JSON.parse(String(init.body))).toEqual({ chatId: '10000000', message: 'Привет' })
   })
 
-  test('receiveNotification передаёт receiveTimeout и AbortSignal', async () => {
+  test('receiveNotification передаёт receiveTimeout и отменяемый сигнал', async () => {
     const notification = { receiptId: 1, body: { typeWebhook: 'incomingMessageReceived' } }
     fetchMock.mockResolvedValue(jsonResponse(notification))
     const controller = new AbortController()
@@ -89,7 +89,13 @@ describe('createGreenApiClient', () => {
     )
     const { url, init } = lastCall()
     expect(url).toBe(`${base}/receiveNotification/token123?receiveTimeout=20`)
-    expect(init.signal).toBe(controller.signal)
+
+    // Сигнал вызывающего обёрнут в AbortSignal.any вместе с таймаутом, поэтому проверяем
+    // поведение, а не идентичность объекта
+    const signal = init.signal as AbortSignal
+    expect(signal.aborted).toBe(false)
+    controller.abort()
+    expect(signal.aborted).toBe(true)
   })
 
   test.each([
@@ -128,6 +134,22 @@ describe('createGreenApiClient', () => {
     fetchMock.mockRejectedValue(new DOMException('Aborted', 'AbortError'))
 
     await expect(client.receiveNotification()).rejects.toMatchObject({ name: 'AbortError' })
+  })
+
+  test('таймаут запроса → GreenApiError со статусом 0 и признаком timeout', async () => {
+    fetchMock.mockRejectedValue(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
+
+    const error = await client.getStateInstance().catch((e: unknown) => e)
+    expect(error).toMatchObject({ name: 'GreenApiError', status: 0, timeout: true })
+  })
+
+  test('ответ 200 с { status: false, reason } → GreenApiRejectError', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ status: false, reason: 'instance is starting or not authorized' }))
+
+    await expect(client.checkAccount('79991234567')).rejects.toMatchObject({
+      name: 'GreenApiRejectError',
+      reason: 'instance is starting or not authorized',
+    })
   })
 })
 

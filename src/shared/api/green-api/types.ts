@@ -62,6 +62,15 @@ export interface DeleteNotificationResponse {
   result: boolean
 }
 
+/**
+ * Некоторые методы вместо ожидаемого объекта отвечают 200 с отказом, например checkAccount:
+ * инстанс ещё запускается / не авторизован, либо исчерпан лимит проверок номеров.
+ */
+export interface RejectedResponse {
+  status: false
+  reason: string
+}
+
 export interface MessageData {
   typeMessage: string
   textMessageData?: { textMessage: string }

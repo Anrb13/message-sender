@@ -46,6 +46,13 @@ describe('createChat', () => {
 
     await expect(createChat('max', session, '79991234567')).rejects.toThrow('лимит тарифа')
   })
+
+  test('отказ в теле ответа → причина отказа, а не «номер не зарегистрирован»', async () => {
+    mockGreenApi({ checkAccount: () => ({ status: false, reason: 'instance is starting or not authorized' }) })
+
+    await expect(createChat('max', session, '79991234567')).rejects.toThrow('не авторизован')
+    expect(useChatStore.getState().chats).toEqual({})
+  })
 })
 
 describe('createChat в других мессенджерах', () => {
