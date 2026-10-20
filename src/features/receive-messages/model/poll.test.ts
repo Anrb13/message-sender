@@ -87,4 +87,16 @@ describe('pollNotifications', () => {
 
     expect(receiveNotification).not.toHaveBeenCalled()
   })
+
+  test('сбой подписчика на статус не останавливает цикл', async () => {
+    const { client, receiveNotification } = scriptedClient(controller, [new GreenApiError(500, ''), null])
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const onStatus = vi.fn(() => {
+      throw new Error('подписчик упал')
+    })
+
+    await pollNotifications({ client, signal: controller.signal, onNotification: vi.fn(), onStatus, retryDelays: [1] })
+
+    expect(receiveNotification).toHaveBeenCalledTimes(3)
+  })
 })

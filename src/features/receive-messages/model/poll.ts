@@ -60,7 +60,13 @@ export async function pollNotifications({
       await client.deleteNotification(notification.receiptId, signal)
     } catch (error) {
       if (signal.aborted || isAbortError(error)) return
-      onStatus?.(describeError(error))
+      try {
+        onStatus?.(describeError(error))
+      } catch (statusError) {
+        // Сбой подписчика на статус (например, ошибка рендера) не должен убивать бесконечный цикл:
+        // иначе приём сообщений остановится навсегда, а не переподключится
+        console.error('Не удалось показать ошибку соединения', statusError)
+      }
       await sleep(retryDelays[Math.min(failures, retryDelays.length - 1)], signal)
       failures++
     }
