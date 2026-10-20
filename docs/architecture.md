@@ -109,13 +109,6 @@ sequenceDiagram
 - Пустой `apiUrl` заменяется адресом, вычисленным по `idInstance`.
 - Ошибки GREEN-API переводятся в понятный текст функцией `describeError` ([shared/api](../src/shared/api)).
 
-## Страницы
-
-### `pages/messenger`
-Табы MAX / Telegram / WhatsApp. На табе показывается число непрочитанных сообщений. Содержимое таба зависит
-от сессии этого мессенджера: без неё показывается форма входа, с ней — чат. Неактивные табы не монтируются,
-но сообщения в них продолжают приходить (см. `features/receive-messages`).
-
 ### `features/create-chat`
 `CreateChatForm` принимает номер телефона, `createChat` строит по нему чат:
 
@@ -123,31 +116,20 @@ sequenceDiagram
 sequenceDiagram
   actor U as Пользователь
   participant F as CreateChatForm
-  participant A as adapter (MAX)
+  participant A as adapter
   participant G as GREEN-API
   participant C as useChatStore
   U->>F: +7 (999) 123-45-67
   F->>F: normalizePhone → 79991234567
   F->>A: resolveChatId(phone)
-  A->>G: checkAccount {phoneNumber}
-  G-->>A: {exist, chatId}
+  A->>G: checkAccount / checkWhatsapp {phoneNumber}
+  G-->>A: chatId (+ aliases для WhatsApp)
   alt номера нет в мессенджере
-    F-->>U: «Номер не зарегистрирован в MAX»
+    F-->>U: «Номер не зарегистрирован в …»
   else
     F->>C: upsertChat + setActiveChat
   end
 ```
-
-## Виджеты
-
-### `widgets/sidebar`
-Шапка с названием мессенджера, своим номером (`formatWid(wid)`) и кнопкой выхода. Под ней форма создания
-чата и список чатов: новые чаты без сообщений сверху, остальные по времени последнего сообщения. У каждого
-чата видны последнее сообщение и счётчик непрочитанных.
-
-### `widgets/chat-window`
-Шапка с собеседником, переписка (`MessageBubble`, автопрокрутка вниз) и поле ввода. На узких экранах
-(< 48em) layout становится одноколоночным: виден либо список чатов, либо открытый чат с кнопкой «Назад».
 
 ### `features/send-message`
 `MessageComposer`: Enter отправляет, Shift+Enter переносит строку, лимит 4000 символов. Отправка оптимистичная:
@@ -199,8 +181,8 @@ sequenceDiagram
   end
 ```
 
-- `applyNotification` — чистая функция:
-  - `incomingMessageReceived` создаёт чат, если его ещё нет (имя и телефон берутся из `senderData`), и добавляет
+- `applyNotification` не хранит своего состояния: каждое уведомление она переводит в вызовы `useChatStore`:
+  - `incomingMessageReceived` создаёт чат, если его ещё нет (имя и телефон берутся из `senderData`, в WhatsApp телефон — из chatId `номер@c.us`), и добавляет
     входящее сообщение;
   - `outgoingMessageReceived` (отправлено с телефона) и `outgoingAPIMessageReceived` добавляют исходящее.
     Дубли отсекаются по `idMessage`;
@@ -211,3 +193,21 @@ sequenceDiagram
 - Ошибки приёма попадают в `useConnectionStore`, и `ConnectionStatus` показывает их в сайдбаре. Например,
   если в инстансе задан `webhookUrl`, пользователь увидит подсказку очистить его. Цикл при этом
   переподключается сам.
+
+## Виджеты
+
+### `widgets/sidebar`
+Шапка с названием мессенджера, своим номером (`formatWid(wid)`) и кнопкой выхода. Под ней форма создания
+чата и список чатов: новые чаты без сообщений сверху, остальные по времени последнего сообщения. У каждого
+чата видны последнее сообщение и счётчик непрочитанных.
+
+### `widgets/chat-window`
+Шапка с собеседником, переписка (`MessageBubble`, автопрокрутка вниз) и поле ввода. На узких экранах
+(< 48em) layout становится одноколоночным: виден либо список чатов, либо открытый чат с кнопкой «Назад».
+
+## Страницы
+
+### `pages/messenger`
+Табы MAX / Telegram / WhatsApp. На табе показывается число непрочитанных сообщений. Содержимое таба зависит
+от сессии этого мессенджера: без неё показывается форма входа, с ней — чат. Неактивные табы не монтируются,
+но сообщения в них продолжают приходить (см. `features/receive-messages`).

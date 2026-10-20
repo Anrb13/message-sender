@@ -24,6 +24,15 @@ entities → shared`, импорты только сверху вниз, каж�
 - Тесты лежат рядом с модулем: `foo.ts` → `foo.test.ts`.
 - Vitest работает в **Browser Mode**: тесты выполняются в настоящем Chromium (Playwright), компоненты
   рендерятся через `vitest-browser-react`. Перед первым запуском нужен браузер: `npx playwright install chromium`.
+- Хелперы в [src/shared/lib/test](../src/shared/lib/test):
+  - `renderWithMantine(ui)` рендерит компонент внутри `MantineProvider`;
+  - `mockGreenApi({ method: handler })` подменяет `fetch` и выбирает ответ по имени метода GREEN-API из URL.
+    Обработчик возвращает данные для JSON-ответа или готовый `Response`, например с ошибкой.
+- Сторы Zustand сбрасываются перед каждым тестом: `useXStore.setState(useXStore.getInitialState())` и
+  `localStorage.clear()`.
+- В красной фазе TDD, пока модуля ещё нет, Vite вставляет на страницу оверлей с ошибкой импорта, и тесты
+  **соседних** файлов могут падать на поиске элементов. Это пропадает, как только модуль появляется.
+  Проверяйте красную фазу точечно: `npx vitest run путь/к/тесту`.
 
 ## Линтеры
 
@@ -49,14 +58,21 @@ entities → shared`, импорты только сверху вниз, каж�
   <button className={b({ active })}>   // chat-list-item chat-list-item--active
     <div className={b('body')}>        // chat-list-item__body
   ```
-- Вклад Mantine в бандл (gzip): JS 68.6 → 81.9 КБ, CSS 0 → 4.7 КБ.
+- Вклад Mantine в бандл (gzip): JS 68.6 → 81.9 КБ, CSS 0 → 4.7 КБ. Итоговый бандл приложения:
+  JS 110 КБ, CSS 12.4 КБ.
 - Ссылки на статику — через импорт или `import.meta.env.BASE_URL`: на GitHub Pages приложение живёт
   в подпапке `/message-sender/`, абсолютные пути `/...` там ломаются.
 
 ## Деплой
 
-Push в `main` запускает [workflow](../.github/workflows/deploy.yml): lint → тесты → сборка → публикация на
-GitHub Pages (https://anrb13.github.io/message-sender/).
+Push в `main` запускает [workflow](../.github/workflows/deploy.yml):
+
+```
+npm ci → Oxlint → Steiger → typecheck → тесты (Chromium) → сборка → публикация на GitHub Pages
+```
+
+Если любой шаг падает, деплой не выполняется. Сайт: https://anrb13.github.io/message-sender/.
+Один раз в настройках репозитория нужно выбрать Settings → Pages → Source: **GitHub Actions**.
 
 ## Соглашения
 

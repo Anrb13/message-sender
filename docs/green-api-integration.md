@@ -19,6 +19,7 @@
 | `getStateInstance` | GET | проверка учётных данных при входе (`authorized`) |
 | `getSettings` / `setSettings` | GET / POST | проверка и включение уведомлений. `setSettings` перезапускает инстанс |
 | `checkAccount` | POST | MAX, Telegram: номер → `chatId` |
+| `checkWhatsapp` | POST | WhatsApp: есть ли аккаунт у номера, `@lid`-идентификатор |
 | `sendMessage` | POST | отправка текста, ответ `{ idMessage }` |
 | `receiveNotification` | GET | long polling входящих уведомлений, `?receiveTimeout=5..60` |
 | `deleteNotification` | DELETE | удаление обработанного уведомления: `/{receiptId}` |
