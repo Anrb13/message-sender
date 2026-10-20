@@ -17,7 +17,7 @@ export function ChatListItem({ chat, lastMessage, active = false, onSelect }: Ch
   const title = getChatTitle(chat)
 
   return (
-    <UnstyledButton className={b({ active })} aria-current={active} onClick={() => onSelect?.(chat.key)}>
+    <UnstyledButton className={b({ active })} aria-current={active ? 'true' : undefined} onClick={() => onSelect?.(chat.key)}>
       <Avatar name={title} color="initials" radius="xl" />
       <div className={b('body')}>
         <Text size="sm" fw={500} truncate>

@@ -45,4 +45,10 @@ describe('ChatListItem', () => {
     await button.click()
     expect(onSelect).toHaveBeenCalledWith('max:1')
   })
+
+  test('у неактивного чата атрибута aria-current нет, а не aria-current="false"', async () => {
+    const screen = await renderWithMantine(<ChatListItem chat={chat()} />)
+
+    await expect.element(screen.getByRole('button', { name: /Иван Петров/ })).not.toHaveAttribute('aria-current')
+  })
 })
